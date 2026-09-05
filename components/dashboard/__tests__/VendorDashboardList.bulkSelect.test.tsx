@@ -69,7 +69,7 @@ describe("VendorDashboardList — bulk selection & export", () => {
     const checkboxes = screen.getAllByRole("checkbox");
     await userEvent.click(checkboxes[1]); // first row ("Item One")
 
-    expect(await screen.findByText(/1 selected/i)).toBeInTheDocument();
+    expect((await screen.findAllByText(/1 selected/i))[0]).toBeInTheDocument();
     expect(downloadCsv).not.toHaveBeenCalled();
   });
 
@@ -79,7 +79,7 @@ describe("VendorDashboardList — bulk selection & export", () => {
     const selectAll = screen.getByLabelText(/select all/i);
     await userEvent.click(selectAll);
 
-    expect(await screen.findByText(/3 selected/i)).toBeInTheDocument();
+    expect((await screen.findAllByText(/3 selected/i))[0]).toBeInTheDocument();
   });
 
   it("exports only the selected rows as CSV", async () => {
@@ -106,14 +106,14 @@ describe("VendorDashboardList — bulk selection & export", () => {
     await renderList();
 
     await userEvent.click(screen.getAllByRole("checkbox")[1]);
-    expect(await screen.findByText(/1 selected/i)).toBeInTheDocument();
+    expect((await screen.findAllByText(/1 selected/i))[0]).toBeInTheDocument();
 
     await userEvent.click(
       screen.getByRole("button", { name: /clear selection/i })
     );
 
-    await waitFor(() =>
-      expect(screen.queryByText(/1 selected/i)).not.toBeInTheDocument()
-    );
+    await waitFor(() => {
+      expect(screen.queryAllByText(/1 selected/i)).toHaveLength(0);
+    });
   });
 });
