@@ -6,7 +6,10 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Escrow } from "@/types";
 import { EscrowStatusConst } from "@/types";
 
-const getVendorEscrows = vi.fn();
+const { getVendorEscrows } = vi.hoisted(() => ({
+  getVendorEscrows: vi.fn(),
+}));
+
 vi.mock("@/lib/api", () => ({
   getVendorEscrows: (token?: string) => getVendorEscrows(token),
 }));
@@ -16,7 +19,9 @@ vi.mock("@/components/dashboard/TransactionHistoryExport", () => ({
   default: () => null,
 }));
 
-const downloadCsv = vi.fn();
+const { downloadCsv } = vi.hoisted(() => ({
+  downloadCsv: vi.fn(),
+}));
 vi.mock("@/utils/exportCsv", () => ({ downloadCsv }));
 
 import VendorDashboardList from "../VendorDashboardList";
@@ -62,7 +67,7 @@ describe("VendorDashboardList — bulk selection & export", () => {
     await renderList();
 
     const checkboxes = screen.getAllByRole("checkbox");
-    await userEvent.click(checkboxes[0]); // first row ("Item One")
+    await userEvent.click(checkboxes[1]); // first row ("Item One")
 
     expect(await screen.findByText(/1 selected/i)).toBeInTheDocument();
     expect(downloadCsv).not.toHaveBeenCalled();
@@ -81,8 +86,8 @@ describe("VendorDashboardList — bulk selection & export", () => {
     await renderList();
 
     const checkboxes = screen.getAllByRole("checkbox");
-    await userEvent.click(checkboxes[0]); // Item One
-    await userEvent.click(checkboxes[2]); // Item Three
+    await userEvent.click(checkboxes[1]); // Item One
+    await userEvent.click(checkboxes[3]); // Item Three
 
     const exportButton = await screen.findByRole("button", {
       name: /export selected/i,
@@ -90,7 +95,7 @@ describe("VendorDashboardList — bulk selection & export", () => {
     await userEvent.click(exportButton);
 
     expect(downloadCsv).toHaveBeenCalledTimes(1);
-    const [rows] = downloadCsv.mock.calls[0] as [[Record<string, unknown>[]]];
+    const [rows] = downloadCsv.mock.calls[0] as [(Record<string, unknown> & { item: string })[]];
     const items = rows.map((r) => r.item);
     expect(items).toContain("Item One");
     expect(items).toContain("Item Three");
@@ -100,7 +105,7 @@ describe("VendorDashboardList — bulk selection & export", () => {
   it("clears selection from the action bar", async () => {
     await renderList();
 
-    await userEvent.click(screen.getAllByRole("checkbox")[0]);
+    await userEvent.click(screen.getAllByRole("checkbox")[1]);
     expect(await screen.findByText(/1 selected/i)).toBeInTheDocument();
 
     await userEvent.click(
